@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Trail map · {{ case.name }}{% endblock %}
+{% block content %}
+<div class="map-page">
+
+<header class="page-head page-head-tight">
+  <div>
+    <a href="{{ url_for('case_detail', case_id=case.id) }}" class="breadcrumb">← {{ case.name }}</a>
+    <h1>Trail map</h1>
+  </div>
+  <div class="legend">
+    <span><i class="dot known"></i> Known tower</span>
+    <span><i class="dot provided"></i> From file</span>
+    <span><i class="dot estimated"></i> Estimated</span>
+    <span><i class="dot anomaly"></i> Anomalous jump</span>
+  </div>
+</header>
+
+<!-- Filters -->
+<div class="filter-bar" id="time-filter-bar">
+  <div class="filter-group">
+    <label>Date from</label>
+    <input type="date" id="filter-date-from">
+  </div>
+  <div class="filter-group">
+    <label>Date to</label>
+    <input type="date" id="filter-date-to">
+  </div>
+  <div class="filter-group">
+    <label>Time from</label>
+    <input type="time" id="filter-time-from" value="00:00">
+  </div>
+  <div class="filter-group">
+    <label>Time to</label>
+    <input type="time" id="filter-time-to" value="23:59">
+  </div>
+  <div class="filter-group filter-group-days">
+    <label>Days</label>
+    <div class="day-chips" id="day-chips"></div>
+  </div>
+  <div class="filter-actions">
+    <button type="button" class="btn-ghost small" id="filter-reset">Reset</button>
+    <button type="button" class="btn-primary small" id="filter-apply">Apply filter</button>
+  </div>
+  <div class="filter-summary" id="filter-summary"></div>
+</div>
+
+<!-- Stats -->
+<div class="stat-row" id="stat-row"></div>
+
+<!-- Event type summary -->
+<div class="event-cat-grid" id="event-cat-grid"></div>
+
+<!-- Analytics above map -->
+<section class="stack-section">
+  <div class="stack-grid stack-grid-3">
+    <div class="stack-panel stack-panel-wide">
+      <h2 class="stack-title">Call pattern matrix</h2>
+      <p class="stack-sub">Incoming vs outgoing by hour of day</p>
+      <div class="pattern-matrix-wrap" id="pattern-matrix"></div>
+    </div>
+    <div class="stack-panel">
+      <h2 class="stack-title">Peak activity hours</h2>
+      <div class="hour-chart hour-chart-tall" id="hour-chart"></div>
+    </div>
+    <div class="stack-panel">
+      <h2 class="stack-title">Call type breakdown</h2>
+      <div class="breakdown-bars" id="breakdown-bars"></div>
+    </div>
+  </div>
+
+  <div class="stack-grid stack-grid-3">
+    <div class="stack-panel">
+      <h2 class="stack-title">Frequent locations</h2>
+      <ul class="freq-list freq-list-tall" id="freq-list"></ul>
+    </div>
+    <div class="stack-panel">
+      <div class="alert-toggle">
+        <label><input type="checkbox" id="toggle-device-alerts" checked> IMEI / IMSI change alerts</label>
+      </div>
+      <ul class="alert-list alert-list-tall" id="device-alerts-list"></ul>
+    </div>
+    <div class="stack-panel">
+      <div class="alert-toggle">
+        <label><input type="checkbox" id="toggle-operator-alerts" checked> Operator handoff alerts</label>
+      </div>
+      <ul class="alert-list alert-list-tall" id="operator-alerts-list"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- Map center (full width, no sidebar) -->
+<section class="map-center-section">
+  <div class="map-toolbar">
+    <button type="button" class="btn-ghost small" id="toggle-heatmap">◎ Heatmap</button>
+    <button type="button" class="btn-ghost small" id="clear-geofence">✕ Clear geofence</button>
+    <span class="hint-text">Draw a circle or polygon on the map to list events inside the area</span>
+  </div>
+  <div id="map" class="map-canvas map-canvas-center"></div>
+  <div class="stack-panel geofence-panel" id="geofence-panel" style="display:none">
+    <h2 class="stack-title">Geofence — events inside area <span class="count-badge" id="geofence-count">0</span></h2>
+    <p class="geofence-hint" id="geofence-hint"></p>
+    <div class="geofence-events geofence-events-tall" id="geofence-events"></div>
+  </div>
+</section>
+
+<!-- Playback -->
+<div class="signal-strip">
+  <div class="signal-strip-controls">
+    <button id="play-btn" class="btn-ghost small">▶ Play</button>
+    <label class="speed-select">
+      Speed
+      <select id="play-speed">
+        <option value="800">0.5×</option>
+        <option value="450" selected>1×</option>
+        <option value="250">2×</option>
+        <option value="120">4×</option>
+      </select>
+    </label>
+    <label class="follow-toggle">
+      <input type="checkbox" id="follow-map" checked> Follow on map
+    </label>
+    <span id="time-readout" class="mono">—</span>
+    <span id="playhead-info" class="playhead-info"></span>
+  </div>
+  <input type="range" id="time-slider" min="0" max="0" value="0" class="slider">
+</div>
+
+<!-- Selected point (below map) -->
+<div class="stack-panel stack-panel-detail" id="selected-point-block">
+  <h2 class="stack-title">Selected point</h2>
+  <p class="hint-text">Click a marker on the map to inspect full event intelligence.</p>
+</div>
+
+<!-- Contacts -->
+<div class="contact-tables">
+  <div class="stack-panel">
+    <h2 class="stack-title">Top contacts — most calls</h2>
+    <table class="data-table" id="table-most-calls">
+      <thead><tr><th>Contact</th><th>Calls</th><th>First</th><th>Last</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="stack-panel">
+    <h2 class="stack-title">Top contacts — most duration</h2>
+    <table class="data-table" id="table-most-duration">
+      <thead><tr><th>Contact</th><th>Total time</th><th>First</th><th>Last</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Event log -->
+<div class="stack-panel event-log-panel">
+  <div class="event-log-header">
+    <h2 class="stack-title">Event log <span class="count-badge" id="event-count-badge"></span></h2>
+    <button id="view-all-events" class="btn-ghost small">View all in new tab →</button>
+  </div>
+  <div class="event-log event-log-tall" id="event-log"></div>
+</div>
+
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script>
+  const CASE_ID = {{ case.id }};
+  const API_URL = "{{ url_for('api_records', case_id=case.id) }}";
+</script>
+<script src="{{ url_for('static', filename='js/cdr-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}

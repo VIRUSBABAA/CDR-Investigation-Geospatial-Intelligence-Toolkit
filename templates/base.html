@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}SignalTrace{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% if current_user.is_authenticated %}
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">●</span>
+      <span class="brand-name">SignalTrace</span>
+    </div>
+    <div class="status-banner">
+      <span class="status-dot"></span>
+      <span>CDR Intelligence · Secure Analysis</span>
+    </div>
+    <nav class="nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-link {{ 'active' if request.endpoint=='dashboard' }}">Cases</a>
+    </nav>
+    <div class="sidebar-footer">
+      <form action="{{ url_for('change_password') }}" method="post" class="pw-form">
+        <details>
+          <summary>Change password</summary>
+          <input type="password" name="current_password" placeholder="Current password" required>
+          <input type="password" name="new_password" placeholder="New password" required>
+          <button type="submit">Update</button>
+        </details>
+      </form>
+      <div class="user-row">
+        <span>{{ current_user.username }}</span>
+        <a href="{{ url_for('logout') }}">Log out</a>
+      </div>
+    </div>
+  </aside>
+  <main class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}
+  {% block auth_content %}{% endblock %}
+{% endif %}
+</body>
+</html>

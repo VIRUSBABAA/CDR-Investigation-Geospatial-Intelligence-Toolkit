@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Cases · SignalTrace{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Cases</h1>
+    <p class="page-sub">Each case represents one subject. Attach multiple CDR sheets to build a combined trail.</p>
+  </div>
+  <button class="btn-primary" onclick="document.getElementById('new-case-modal').classList.add('open')">+ New case</button>
+</header>
+
+{% if cases %}
+<div class="case-grid">
+  {% for case in cases %}
+  <a href="{{ url_for('case_detail', case_id=case.id) }}" class="case-card">
+    <div class="case-card-top">
+      <span class="case-dot"></span>
+      <span class="case-name">{{ case.name }}</span>
+    </div>
+    <p class="case-notes">{{ case.notes or "No notes added." }}</p>
+    <div class="case-meta">
+      <span>{{ case.files|length }} file{{ '' if case.files|length == 1 else 's' }}</span>
+      <span>{{ case.created_at.strftime('%d %b %Y') }}</span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <p>No cases yet.</p>
+  <p class="empty-sub">Create a case (e.g. "Victim 1") to start uploading CDR sheets.</p>
+</div>
+{% endif %}
+
+<div class="modal" id="new-case-modal">
+  <div class="modal-card">
+    <h2>New case</h2>
+    <form method="post" action="{{ url_for('new_case') }}">
+      <label>Case / subject label</label>
+      <input type="text" name="name" placeholder="e.g. Victim 1" required>
+      <label>Notes (optional)</label>
+      <textarea name="notes" rows="3" placeholder="Investigation context, reference number, etc."></textarea>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" onclick="document.getElementById('new-case-modal').classList.remove('open')">Cancel</button>
+        <button type="submit" class="btn-primary">Create case</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

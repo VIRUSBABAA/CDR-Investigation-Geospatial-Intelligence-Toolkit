@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ case.name }} · SignalTrace{% endblock %}
+{% block content %}
+<header class="page-head">
+  <div>
+    <a href="{{ url_for('dashboard') }}" class="breadcrumb">← Cases</a>
+    <h1>{{ case.name }}</h1>
+    <p class="page-sub">{{ case.notes or "No notes added." }}</p>
+  </div>
+  <div class="page-actions">
+    {% if total_records > 0 %}
+    <a class="btn-ghost" href="{{ url_for('export_csv', case_id=case.id) }}">Export CSV</a>
+    <a class="btn-primary" href="{{ url_for('case_map', case_id=case.id) }}">Open trail map →</a>
+    {% endif %}
+  </div>
+</header>
+
+<section class="panel">
+  <h2 class="panel-title">Upload CDR sheet</h2>
+  <p class="panel-sub">Accepts .xlsx, .xls or .csv. Columns are auto-detected (IMEI, IMSI, A/B Number, Cell ID, Service Provider, Direction, Latitude/Longitude, etc). Multiple files merge into one trail for this case.</p>
+  <form method="post" action="{{ url_for('upload_cdr', case_id=case.id) }}" enctype="multipart/form-data" class="upload-form-stack">
+    <input type="file" name="cdr_file" accept=".xlsx,.xls,.csv" required>
+    <label class="consent-row">
+      <input type="checkbox" name="lawful_use_ack" required>
+      <span>I confirm this data was lawfully obtained and I am authorized to analyze it.</span>
+    </label>
+    <button type="submit" class="btn-primary">Import</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2 class="panel-title">Files attached <span class="count-badge">{{ files|length }}</span></h2>
+  {% if files %}
+  <table class="data-table">
+    <thead><tr><th>Filename</th><th>Uploaded</th><th>Records</th><th></th></tr></thead>
+    <tbody>
+      {% for f in files %}
+      <tr>
+        <td class="mono">{{ f.original_filename }}</td>
+        <td>{{ f.uploaded_at.strftime('%d %b %Y, %H:%M') }}</td>
+        <td>{{ f.record_count }}</td>
+        <td>
+          <form method="post" action="{{ url_for('delete_file', case_id=case.id, file_id=f.id) }}" onsubmit="return confirm('Remove this file and its records?')">
+            <button type="submit" class="btn-link-danger">Remove</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="panel-sub" style="margin-top:12px">Total records across all files: <strong>{{ total_records }}</strong></p>
+  {% else %}
+  <div class="empty-state-inline">No files uploaded yet for this case.</div>
+  {% endif %}
+</section>
+
+<form method="post" action="{{ url_for('archive_case', case_id=case.id) }}" onsubmit="return confirm('Archive this case?')" style="margin-top:24px">
+  <button type="submit" class="btn-link-danger">Archive case</button>
+</form>
+{% endblock %}

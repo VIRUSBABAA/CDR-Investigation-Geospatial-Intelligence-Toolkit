@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Event #{{ record.id }} · {{ case.name }}{% endblock %}
+{% block content %}
+<div class="content-wide">
+<header class="page-head">
+  <div>
+    <a href="{{ url_for('case_events', case_id=case.id) }}" class="breadcrumb">← Event log · {{ case.name }}</a>
+    <h1>Event intelligence report</h1>
+    <p class="page-sub mono" id="event-headline">Loading…</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('case_map', case_id=case.id) }}" class="btn-ghost small">Open map</a>
+  </div>
+</header>
+
+<div class="detail-grid" id="detail-grid">
+  <p class="hint-text">Loading event data…</p>
+</div>
+
+<div class="panel" id="detail-map-panel" style="display:none">
+  <h2 class="panel-title">Location map</h2>
+  <div id="detail-map" class="detail-map-canvas"></div>
+</div>
+
+<div class="panel" id="context-panel" style="display:none">
+  <h2 class="panel-title">Trail context — previous &amp; next events</h2>
+  <div class="context-row" id="context-row"></div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const CASE_ID = {{ case.id }};
+  const RECORD_ID = {{ record.id }};
+  const API_URL = "{{ url_for('api_records', case_id=case.id) }}";
+</script>
+<script src="{{ url_for('static', filename='js/cdr-utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/event-detail.js') }}"></script>
+</div>
+{% endblock %}

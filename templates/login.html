@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Sign in · SignalTrace{% endblock %}
+{% block auth_content %}
+<div class="auth-screen">
+  <div class="auth-card">
+    <div class="brand brand-center">
+      <span class="brand-mark">●</span>
+      <span class="brand-name">SignalTrace</span>
+    </div>
+    <p class="auth-sub">Cellular trail reconstruction &amp; OSINT analysis</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" class="auth-form">
+      <label>Username</label>
+      <input type="text" name="username" autocomplete="username" required autofocus>
+      <label>Password</label>
+      <input type="password" name="password" autocomplete="current-password" required>
+      <button type="submit">Sign in</button>
+    </form>
+    <p class="auth-hint">Default account: <code>admin</code> / <code>admin</code> — change it after first login.</p>
+  </div>
+</div>
+{% endblock %}
