@@ -185,7 +185,7 @@ Real CDR data is regulated in most jurisdictions. Use this tool only with data y
 
 ## License
 
-Portfolio / educational project. Add your preferred license (e.g. MIT) before open-sourcing.
+This project is provided for educational and portfolio purposes only. All rights are reserved unless otherwise stated
 
 ---
 
