@@ -1,0 +1,27 @@
+# Python
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Local runtime data (never commit uploads or SQLite DB)
+instance/
+*.db
+
+# Build / packaging
+build/
+dist/
+*.spec
+
+# Environment & IDE
+.env
+.vs/
+.idea/
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store
